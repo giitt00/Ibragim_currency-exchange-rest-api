@@ -36,3 +36,41 @@
 > Для запуска проекта локально при использовании Community Edition также можно использовать:
 > - [Плагин Tomcat для Community Edition](https://plugins.jetbrains.com/plugin/9492-smart-tomcat)
 > - [Maven плагин Jetty](https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-maven-plugin) для автоматического развертывания артефакта .war на сервере Jetty вместо Tomcat
+
+# Шаг 2 - интеграция SQLite & первый DAO класс
+
+1. Файл `resources/database.db` был создан с помощью команды `sqlite3`.
+   Для использования SQLite необходимо сначала скачать его с [официального сайта](https://www.sqlite.org/index.html).
+2. Файлы `resources/scripts/*.sql` должны быть исполнены вручную на файле `database.db`.
+   В Java-коде нет механизма, который бы делал это автоматически, хотя это возможно сделать
+
+> [!NOTE]
+> SQLite имеет меньше типов данных, чем большинство других баз данных.
+> Например, в таблице `Currencies` столбец `code` имеет специфическую для SQLite проверку длины, в то время как в других
+> БД `VARCHAR(3)`
+> было бы достаточно.
+
+3. Добавлена зависимость sqlite-jdbc driver, позволяющая Java-коду взаимодействовать с базой данных SQLite с помощью
+   JDBC
+4. Добавлена зависимость lombok, чтобы избежать ручного написания шаблонного кода, такого как сеттеры, геттеры,
+   конструкторы и т.д.
+5. Класс `Currency` представляет сущность в базе данных
+6. Интерфейс `CrudDao` определяет, какие общие методы должны быть у каждого класса DAO.
+7. Интерфейс `CurrencyDao` определяет, какие операции необходимы для манипулирования сущностью Currency в базе данных
+8. Зависимость Hikari Connection Pool была добавлена для облегчения работы с соединениями с базой данных
+9. Класс `DatabaseConnectionManager` настраивает `HikariDataSource` и предоставляет `Connection` объекты для операций с
+   базой данных классам DAO
+10. Класс `JdbcCurrencyDao` инкапсулирует все операции базы данных, связанные с таблицей Currency.
+
+> [!IMPORTANT]
+> `JdbcCurrencyDao` использует try-with-resources для каждого метода.
+> Важно
+> [закрывать connection, statements & result sets](https://docs.oracle.com/javase/tutorial/jdbc/basics/processingsqlstatements.html#closing_connections),
+> чтобы они не потребляли ресурсы.
+> Это можно сделать, вручную вызвав `close()` в `finally` блоке try-catch или используя try-with-resources, который
+> вызывает этот метод автоматически.
+
+> [!IMPORTANT]
+> Исключения в `JdbcCurrencyDao` в настоящее время игнорируются.
+> Как правило, это плохая практика.
+> Обработка исключений будет рассмотрена в следующем шаге.
