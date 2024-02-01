@@ -2,13 +2,16 @@ package org.example.dao;
 
 import org.example.DatabaseConnectionManager;
 import org.example.entity.Currency;
+import org.example.exception.DatabaseOperationException;
+import org.example.exception.EntityExistsException;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +32,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             }
         }
         catch (SQLException e) {
-            // TODO: handle exception
+            throw new DatabaseOperationException("Failed to read currency with id '" + id + "' form the database");
         }
         return Optional.empty();
     }
@@ -51,8 +54,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             return currencies;
         }
         catch (SQLException e) {
-            // TODO: handle exception
-            return Collections.emptyList();
+            throw new DatabaseOperationException("Failed to read currencies from the database");
         }
     }
 
@@ -70,15 +72,20 @@ public class JdbcCurrencyDao implements CurrencyDao {
             ResultSet resultSet = statement.executeQuery();
 
             if (!resultSet.next()) {
-                throw new SQLException();
+                throw new DatabaseOperationException("Failed to save currency with code '" + entity.getCode() + "' to the database");
             }
 
             return getCurrency(resultSet);
         }
         catch (SQLException e) {
-            // TODO: handle exception
+            if (e instanceof SQLiteException) {
+                SQLiteException exception = (SQLiteException) e;
+                if (exception.getResultCode().code == SQLiteErrorCode.SQLITE_CONSTRAINT_UNIQUE.code) {
+                    throw new EntityExistsException("Currency with code '" + entity.getCode() + "' already exists");
+                }
+            }
+            throw new DatabaseOperationException("Failed to save currency with code '" + entity.getCode() + "' to the database");
         }
-        return null;
     }
 
     @Override
@@ -100,7 +107,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             }
         }
         catch (SQLException e) {
-            // TODO: handle exception
+            throw new DatabaseOperationException("Failed to update currency with id '" + entity.getId() + "' in the database");
         }
         return Optional.empty();
     }
@@ -115,7 +122,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             statement.executeUpdate();
         }
         catch (SQLException e) {
-            // TODO: handle exception
+            throw new DatabaseOperationException("Failed to delete currency with id '" + id + "' from the database");
         }
     }
 
@@ -134,7 +141,7 @@ public class JdbcCurrencyDao implements CurrencyDao {
             }
         }
         catch (SQLException e) {
-            // TODO: handle exception
+            throw new DatabaseOperationException("Failed to read currency with code '" + code + "' from the database");
         }
         return Optional.empty();
     }
