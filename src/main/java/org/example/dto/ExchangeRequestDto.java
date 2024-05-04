@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,5 +15,5 @@ public class ExchangeRequestDto {
 
     private String targetCurrencyCode;
 
-    private Double amount;
+    private BigDecimal amount;
 }

@@ -62,7 +62,7 @@ public class ValidationUtils {
     public static void validate(ExchangeRequestDto exchangeRequestDto) {
         String baseCurrencyCode = exchangeRequestDto.getBaseCurrencyCode();
         String targetCurrencyCode = exchangeRequestDto.getTargetCurrencyCode();
-        Double amount = exchangeRequestDto.getAmount();
+        BigDecimal amount = exchangeRequestDto.getAmount();
 
         if (baseCurrencyCode == null || baseCurrencyCode.isBlank()) {
             throw new InvalidParameterException("Missing parameter - from");
@@ -76,7 +76,7 @@ public class ValidationUtils {
             throw new InvalidParameterException("Missing parameter - amount");
         }
 
-        if (amount.compareTo(0.0) < 0) {
+        if (amount.compareTo(new BigDecimal("0.0")) < 0) {
             throw new InvalidParameterException("Invalid parameter - amount must be non-negative");
         }
 

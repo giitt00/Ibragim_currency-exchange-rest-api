@@ -12,6 +12,7 @@ import org.example.service.ExchangeService;
 import org.example.utils.ValidationUtils;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchange")
 public class ExchangeServlet extends HttpServlet {
@@ -38,9 +39,9 @@ public class ExchangeServlet extends HttpServlet {
         objectMapper.writeValue(resp.getWriter(), exchangeResponseDto);
     }
 
-    private static Double convertToNumber(String amount) {
+    private static BigDecimal convertToNumber(String rate) {
         try {
-            return Double.parseDouble(amount);
+            return BigDecimal.valueOf(Double.parseDouble(rate));
         }
         catch (NumberFormatException e) {
             throw new InvalidParameterException("Parameter amount must be a number");

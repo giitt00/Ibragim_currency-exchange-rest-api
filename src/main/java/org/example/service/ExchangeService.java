@@ -25,7 +25,7 @@ public class ExchangeService {
                                 exchangeRequestDto.getBaseCurrencyCode(), exchangeRequestDto.getTargetCurrencyCode()))
                 );
 
-        BigDecimal amount = BigDecimal.valueOf(exchangeRequestDto.getAmount());
+        BigDecimal amount = exchangeRequestDto.getAmount();
         BigDecimal convertedAmount = amount.multiply(exchangeRate.getRate()).setScale(2, RoundingMode.HALF_EVEN);
 
         return new ExchangeResponseDto(
@@ -33,7 +33,7 @@ public class ExchangeService {
                 convertToDto(exchangeRate.getTargetCurrency()),
                 exchangeRate.getRate(),
                 exchangeRequestDto.getAmount(),
-                convertedAmount.doubleValue()
+                convertedAmount
         );
     }
 
@@ -75,10 +75,13 @@ public class ExchangeService {
 
         ExchangeRate indirectExchangeRate = exchangeRateOptional.get();
 
+        BigDecimal rate = BigDecimal.ONE.divide(indirectExchangeRate.getRate(), DECIMAL64)
+                .setScale(6, RoundingMode.HALF_EVEN);
+
         ExchangeRate directExchangeRate = new ExchangeRate(
                 indirectExchangeRate.getTargetCurrency(),
                 indirectExchangeRate.getBaseCurrency(),
-                BigDecimal.ONE.divide(indirectExchangeRate.getRate(), DECIMAL64)
+                rate
         );
 
         return Optional.of(directExchangeRate);
@@ -95,7 +98,8 @@ public class ExchangeService {
         ExchangeRate usdToBase = usdToBaseOptional.get();
         ExchangeRate usdToTarget = usdToTargetOptional.get();
 
-        BigDecimal rate = usdToTarget.getRate().divide(usdToBase.getRate(), DECIMAL64);
+        BigDecimal rate = usdToTarget.getRate().divide(usdToBase.getRate(), DECIMAL64)
+                .setScale(6, RoundingMode.HALF_EVEN);
 
         ExchangeRate directExchangeRate = new ExchangeRate(
                 usdToBase.getTargetCurrency(),
